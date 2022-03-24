@@ -1,11 +1,11 @@
 package com.example.notification_service;
 
-import model.NotificationRepository;
+import com.example.notification_service.model.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import model.Notification;
+import com.example.notification_service.model.Notification;
 
 import java.util.Date;
 import java.util.List;
@@ -46,9 +46,9 @@ public class NSController {
     }
 
     @PostMapping ("/")
-    public int postNotifications(Notification notification) {
-        Notification newNotification = notificationRepository.save(notification);
-        return newNotification.getId();
+    public ResponseEntity postNotifications() {
+        Notification notification = notificationRepository.save(new Notification);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @PatchMapping ("/{id}")

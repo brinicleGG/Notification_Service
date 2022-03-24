@@ -1,4 +1,4 @@
-package model;
+package com.example.notification_service.model;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
