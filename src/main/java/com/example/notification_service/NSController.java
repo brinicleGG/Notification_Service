@@ -1,5 +1,7 @@
 package com.example.notification_service;
 
+import model.NotificationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,9 @@ import java.util.List;
 
 @RestController
 public class NSController {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     @GetMapping("/")
     public List<Notification> list() {
@@ -41,8 +46,9 @@ public class NSController {
     }
 
     @PostMapping ("/")
-    public String postNotifications() {
-        return (new Date()).toString();
+    public int postNotifications(Notification notification) {
+        Notification newNotification = notificationRepository.save(notification);
+        return newNotification.getId();
     }
 
     @PatchMapping ("/{id}")
