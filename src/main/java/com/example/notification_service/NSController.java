@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.notification_service.model.Notification;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class NSController {
@@ -18,20 +20,42 @@ public class NSController {
 
     @GetMapping("/")
     public List<Notification> list() {
-        return null;
+
+        Iterable<Notification> notificationIterable = notificationRepository.findAll();
+        ArrayList<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notificationIterable) {
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
-    @GetMapping("/{date}")
-    public String getNotificationsDate() {
-        return (new Date()).toString();
+    @PostMapping ("/")
+    public ResponseEntity postNotifications(@RequestBody Notification notification) {
+        notificationRepository.save(notification);
+        return ResponseEntity.status(HttpStatus.OK).body(notification);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getNotificationsId(@PathVariable int id) { //TODO: сделать по методу в каждый контроллер
-        /*Notification notification = Dd.getNotification(id);
-        if (notification = null) {
+    public ResponseEntity getNotificationsId(@PathVariable int id) {
+        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+        if(!optionalNotification.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }*/
+        }
+        return new ResponseEntity(optionalNotification.get(),HttpStatus.OK);
+    }
+
+    @PatchMapping ("/{id}")
+    public ResponseEntity patchNotifications(@PathVariable int id) {
+        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+        if(!optionalNotification.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteNotifications(@PathVariable int id) {
+        notificationRepository.deleteById(id);
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -40,24 +64,18 @@ public class NSController {
         return (new Date()).toString();
     }
 
-    @GetMapping("/{status}")
-    public String getNotificationsStatus() {
-        return (new Date()).toString();
+    @GetMapping("/status/{status}") //TODO: Размножить на все статусы
+    public List<Notification> getNotificationsStatus(@PathVariable String status) {
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByNotificationText(status);
+        ArrayList<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notificationIterable) {
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
-    @PostMapping ("/")
-    public ResponseEntity postNotifications() {
-        Notification notification = notificationRepository.save(new Notification);
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
-    @PatchMapping ("/{id}")
-    public String patchNotifications() {
+    /*@GetMapping("/{date}")
+    public String getNotificationsDate() {
         return (new Date()).toString();
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteNotifications() {
-        return (new Date()).toString();
-    }
+    }*/
 }
