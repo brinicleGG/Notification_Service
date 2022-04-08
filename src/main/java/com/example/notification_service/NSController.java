@@ -46,11 +46,22 @@ public class NSController {
     }
 
     @PatchMapping ("/{id}")
-    public ResponseEntity patchNotifications(@PathVariable int id) {
+    public ResponseEntity patchNotifications(@PathVariable int id, @RequestBody Notification patchNotification) {
         Optional<Notification> optionalNotification = notificationRepository.findById(id);
         if(!optionalNotification.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+        Notification notification = optionalNotification.get();
+        if (patchNotification.getAddressee() != null && !patchNotification.getAddressee().equals(notification.getAddressee())) {
+            notification.setAddressee(patchNotification.getAddressee());
+        }
+        if (patchNotification.getNotificationText() != null && !patchNotification.getNotificationText().equals(notification.getNotificationText())) {
+            notification.setNotificationText(patchNotification.getNotificationText());
+        }
+        if (patchNotification.getDate() != null && !patchNotification.getDate().equals(notification.getDate())) {
+            notification.setDate(patchNotification.getDate());
+        }
+        notificationRepository.save(notification);
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -81,8 +92,9 @@ public class NSController {
         return notifications;
     }
 
-    /*@GetMapping("/{date}")
-    public String getNotificationsDate() {
-        return (new Date()).toString();
-    }*/
+    @GetMapping("/date/{date}") //TODO: Валидация даты
+    public List<Notification> getNotificationsDate(@PathVariable String stringDate) {
+
+        return null;
+    }
 }
