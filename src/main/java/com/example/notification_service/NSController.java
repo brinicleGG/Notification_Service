@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.notification_service.model.Notification;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,8 +61,14 @@ public class NSController {
     }
 
     @GetMapping("/past")
-    public String getNotificationsPast() {
-        return (new Date()).toString();
+    public List<Notification> getNotificationsPast() {
+        LocalDate sysdate = LocalDate.now();
+        Iterable<Notification> notificationIterable = notificationRepository.findByDateBefore(sysdate);
+        ArrayList<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notificationIterable) {
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
     @GetMapping("/status/{status}") //TODO: Размножить на все статусы
