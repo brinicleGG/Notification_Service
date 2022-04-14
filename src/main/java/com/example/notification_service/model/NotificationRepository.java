@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends CrudRepository<Notification, Integer> {
 
-    List<Notification> findAllByNotificationText(String notificationText);
+    List<Notification> findAllByMessage(String notificationText);
 
-    List<Notification> findByDateBefore(LocalDate sysdate);
+    List<Notification> findByTimeBefore(LocalDate sysdate);
 }

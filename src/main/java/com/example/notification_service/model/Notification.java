@@ -1,9 +1,6 @@
 package com.example.notification_service.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -11,43 +8,80 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Integer id;
 
-    private String addressee;
+    @Column(name = "external_id")
+    private String externalId;  //TODO: Спросить, что с этим делать
 
-    private LocalDate date;
+    private String message;
 
-    private String notificationText;
+    @Column(nullable = false)
+    private LocalDate time;
 
-    public int getId() {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notification_type", columnDefinition = "enum", nullable = false)
+    private NotificationType notificationType;
+
+    @Column(name = "extra_params", nullable = false)
+    private String extraParams;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "enum")
+    private NotificationStatus status = NotificationStatus.WAITING;
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public String getAddressee() {
-        return addressee;
+    public String getExternalId() {
+        return externalId;
     }
 
-    public void setAddressee(String addressee) {
-        this.addressee = addressee;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public String getMessage() {
+        return message;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getNotificationText() {
-        return notificationText;
+    public LocalDate getTime() {
+        return time;
     }
 
-    public void setNotificationText(String notificationText) {
-        this.notificationText = notificationText;
+    public void setTime(LocalDate time) {
+        this.time = time;
+    }
+
+    public NotificationType getNotificationType() {
+        return notificationType;
+    }
+
+    public void setNotificationType(NotificationType notificationType) {
+        this.notificationType = notificationType;
+    }
+
+    public String getExtraParams() {
+        return extraParams;
+    }
+
+    public void setExtraParams(String extraParams) {
+        this.extraParams = extraParams;
+    }
+
+    public NotificationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NotificationStatus status) {
+        this.status = status;
     }
 }

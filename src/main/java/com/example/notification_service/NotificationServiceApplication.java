@@ -1,5 +1,6 @@
 package com.example.notification_service;
 
+import com.example.notification_service.scheduler.ScheduledTasks;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

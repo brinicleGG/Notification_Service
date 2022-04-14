@@ -1,6 +1,7 @@
 package com.example.notification_service;
 
 import com.example.notification_service.model.NotificationRepository;
+import com.example.notification_service.scheduler.ScheduledTasks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +13,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @RestController
-public class NSController {
+public class NSController { //TODO: Рефакторинг
+
+    private static final Logger LOGGER = Logger.getLogger(NSController.class.getName());
 
     @Autowired
     private NotificationRepository notificationRepository;
@@ -45,22 +49,13 @@ public class NSController {
         return new ResponseEntity(optionalNotification.get(),HttpStatus.OK);
     }
 
-    @PatchMapping ("/{id}")
+    @PatchMapping ("/{id}") //TODO: Рефакторинг, продумать реализацию метода
     public ResponseEntity patchNotifications(@PathVariable int id, @RequestBody Notification patchNotification) {
         Optional<Notification> optionalNotification = notificationRepository.findById(id);
         if(!optionalNotification.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         Notification notification = optionalNotification.get();
-        if (patchNotification.getAddressee() != null && !patchNotification.getAddressee().equals(notification.getAddressee())) {
-            notification.setAddressee(patchNotification.getAddressee());
-        }
-        if (patchNotification.getNotificationText() != null && !patchNotification.getNotificationText().equals(notification.getNotificationText())) {
-            notification.setNotificationText(patchNotification.getNotificationText());
-        }
-        if (patchNotification.getDate() != null && !patchNotification.getDate().equals(notification.getDate())) {
-            notification.setDate(patchNotification.getDate());
-        }
         notificationRepository.save(notification);
         return new ResponseEntity(HttpStatus.OK);
     }
@@ -74,7 +69,7 @@ public class NSController {
     @GetMapping("/past")
     public List<Notification> getNotificationsPast() {
         LocalDate sysdate = LocalDate.now();
-        Iterable<Notification> notificationIterable = notificationRepository.findByDateBefore(sysdate);
+        Iterable<Notification> notificationIterable = notificationRepository.findByTimeBefore(sysdate);
         ArrayList<Notification> notifications = new ArrayList<>();
         for (Notification notification : notificationIterable) {
             notifications.add(notification);
@@ -82,9 +77,9 @@ public class NSController {
         return notifications;
     }
 
-    @GetMapping("/status/{status}") //TODO: Размножить на все статусы
+    @GetMapping("/status/{status}") //TODO: Размножить на все статусы, findAllByMessage(status) на статусы
     public List<Notification> getNotificationsStatus(@PathVariable String status) {
-        Iterable<Notification> notificationIterable = notificationRepository.findAllByNotificationText(status);
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByMessage(status);
         ArrayList<Notification> notifications = new ArrayList<>();
         for (Notification notification : notificationIterable) {
             notifications.add(notification);
