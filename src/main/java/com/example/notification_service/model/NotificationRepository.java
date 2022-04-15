@@ -11,5 +11,9 @@ public interface NotificationRepository extends CrudRepository<Notification, Int
 
     List<Notification> findAllByMessage(String notificationText);
 
-    List<Notification> findByTimeBefore(LocalDate sysdate);
+    List<Notification> findAllByTimeBefore(LocalDate sysdate);
+
+    List<Notification> findAllByExternalId(String externalId);
+
+    List<Notification> findAllByStatus(NotificationStatus status);
 }

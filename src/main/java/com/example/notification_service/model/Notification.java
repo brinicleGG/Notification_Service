@@ -10,7 +10,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "external_id")
+    @Column(name = "external_id", nullable = false)
     private String externalId;  //TODO: Спросить, что с этим делать
 
     private String message;
@@ -19,14 +19,13 @@ public class Notification {
     private LocalDate time;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "notification_type", columnDefinition = "enum", nullable = false)
+    @Column(name = "notification_type", nullable = false)
     private NotificationType notificationType;
 
     @Column(name = "extra_params", nullable = false)
     private String extraParams;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "enum")
     private NotificationStatus status = NotificationStatus.WAITING;
 
     public Integer getId() {

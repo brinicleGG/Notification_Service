@@ -1,6 +1,7 @@
 package com.example.notification_service;
 
 import com.example.notification_service.model.NotificationRepository;
+import com.example.notification_service.model.NotificationStatus;
 import com.example.notification_service.scheduler.ScheduledTasks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,10 +14,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @RestController
-public class NSController { //TODO: Рефакторинг
+public class NSController {
 
     private static final Logger LOGGER = Logger.getLogger(NSController.class.getName());
 
@@ -24,34 +26,64 @@ public class NSController { //TODO: Рефакторинг
     private NotificationRepository notificationRepository;
 
     @GetMapping("/")
-    public List<Notification> list() {
+    public ResponseEntity getListNotifications() {
 
         Iterable<Notification> notificationIterable = notificationRepository.findAll();
         ArrayList<Notification> notifications = new ArrayList<>();
         for (Notification notification : notificationIterable) {
             notifications.add(notification);
         }
-        return notifications;
+        return ResponseEntity.status(HttpStatus.OK).body(
+                notifications.size() != 0 ? notifications : "Notifications list clear!");
     }
 
-    @PostMapping ("/")
-    public ResponseEntity postNotifications(@RequestBody Notification notification) {
+
+
+    @PostMapping ("/") //TODO проверку на плохой запрос
+    public ResponseEntity postNotification(@RequestBody Notification notification) {
+
         notificationRepository.save(notification);
+        LOGGER.log(Level.INFO, "Added new notification, id = {0}.", notification.getId());
         return ResponseEntity.status(HttpStatus.OK).body(notification);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity getNotificationsId(@PathVariable int id) {
-        Optional<Notification> optionalNotification = notificationRepository.findById(id);
-        if(!optionalNotification.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+
+
+    @GetMapping ("/{id}") // TODO: Integer.MAX_VALUE = 2_147_483_647. Будет искать уведомление с отрицательным ID
+    public ResponseEntity getNotificationId(@PathVariable String id) {
+
+        int idd;
+        try {
+            idd = Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
+
+            LOGGER.log(Level.INFO, "Bad request in GET method: id is not number, id = {0}.", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'" + id + "' is not number!");
         }
-        return new ResponseEntity(optionalNotification.get(),HttpStatus.OK);
+
+        Optional<Notification> optionalNotification = notificationRepository.findById(idd);
+        if(!optionalNotification.isPresent()) {
+            LOGGER.log(Level.INFO, "Not found: Notification with id = {0} not found.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Notification with id '" + id + "' not found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(optionalNotification.get());
     }
 
+
+
     @PatchMapping ("/{id}") //TODO: Рефакторинг, продумать реализацию метода
-    public ResponseEntity patchNotifications(@PathVariable int id, @RequestBody Notification patchNotification) {
-        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+    public ResponseEntity patchNotification(@PathVariable String id, @RequestBody Notification patchNotification) {
+
+        int idd;
+        try {
+            idd = Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
+
+            LOGGER.log(Level.INFO, "Bad request in PATCH method: id is not number, id = {0}.", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'" + id + "' is not number!");
+        }
+
+        Optional<Notification> optionalNotification = notificationRepository.findById(idd);
         if(!optionalNotification.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -60,16 +92,47 @@ public class NSController { //TODO: Рефакторинг
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteNotifications(@PathVariable int id) {
-        notificationRepository.deleteById(id);
+
+
+    @DeleteMapping("/{id}") //TODO: менять статус или удалять навсегда?
+    public ResponseEntity deleteNotification(@PathVariable String id) {
+
+        int idd;
+        try {
+            idd = Integer.parseInt(id);
+        } catch (NumberFormatException ex) {
+
+            LOGGER.log(Level.INFO, "Bad request in DELETE method: id is not number, id = {0}.", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("'" + id + "' is not number!");
+        }
+
+        notificationRepository.deleteById(idd);
         return new ResponseEntity(HttpStatus.OK);
     }
 
+
+
+    @GetMapping("/external_id/{externalId}")
+    public ResponseEntity getNotificationExternalId(@PathVariable String externalId) {
+
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByExternalId(externalId);
+        ArrayList<Notification> notifications = new ArrayList<>();
+        for (Notification notification : notificationIterable) {
+            notifications.add(notification);
+        }
+        if (notifications.size() == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("External ID '" + externalId + "' not found!");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(notifications);
+    }
+
+
+
     @GetMapping("/past")
     public List<Notification> getNotificationsPast() {
+
         LocalDate sysdate = LocalDate.now();
-        Iterable<Notification> notificationIterable = notificationRepository.findByTimeBefore(sysdate);
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByTimeBefore(sysdate);
         ArrayList<Notification> notifications = new ArrayList<>();
         for (Notification notification : notificationIterable) {
             notifications.add(notification);
@@ -77,15 +140,20 @@ public class NSController { //TODO: Рефакторинг
         return notifications;
     }
 
+
+
     @GetMapping("/status/{status}") //TODO: Размножить на все статусы, findAllByMessage(status) на статусы
-    public List<Notification> getNotificationsStatus(@PathVariable String status) {
-        Iterable<Notification> notificationIterable = notificationRepository.findAllByMessage(status);
+    public List<Notification> getNotificationsStatus(@PathVariable NotificationStatus status) {
+
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByStatus(status);
         ArrayList<Notification> notifications = new ArrayList<>();
         for (Notification notification : notificationIterable) {
             notifications.add(notification);
         }
         return notifications;
     }
+
+
 
     @GetMapping("/date/{date}") //TODO: Валидация даты
     public List<Notification> getNotificationsDate(@PathVariable String stringDate) {
