@@ -1,7 +1,12 @@
 package com.example.notification_service.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Notification {
@@ -16,7 +21,7 @@ public class Notification {
     private String message;
 
     @Column(nullable = false)
-    private LocalDate time;
+    private LocalDateTime time;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_type", nullable = false)
@@ -26,7 +31,11 @@ public class Notification {
     private String extraParams;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private NotificationStatus status = NotificationStatus.WAITING;
+
+    public Notification() {
+    }
 
     public Integer getId() {
         return id;
@@ -52,11 +61,11 @@ public class Notification {
         this.message = message;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(LocalDate time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
 

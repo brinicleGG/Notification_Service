@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: "notification_service"
+  config:
+    import: "optional:file:../config/application.properties"
+
+  logging:
+    file:
+      name: "nts.log"
+      path: "optional:file:../log/nts.log"

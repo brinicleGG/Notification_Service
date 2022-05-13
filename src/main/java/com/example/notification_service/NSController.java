@@ -2,7 +2,7 @@ package com.example.notification_service;
 
 import com.example.notification_service.model.NotificationRepository;
 import com.example.notification_service.model.NotificationStatus;
-import com.example.notification_service.scheduler.ScheduledTasks;
+import com.example.notification_service.validator.NotificationValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import com.example.notification_service.model.Notification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -42,9 +42,33 @@ public class NSController {
     @PostMapping ("/") //TODO проверку на плохой запрос
     public ResponseEntity postNotification(@RequestBody Notification notification) {
 
+        LocalDateTime ldt = LocalDateTime.now();
+        if (ldt.isAfter(notification.getTime())) { // Дата уже прошла
+            LOGGER.log(Level.INFO, "Notification not created. Can't create a reminder in the past!");
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+                    .body("Notification not created. Can't create a reminder in the past!");
+        }
+
+        if (!NotificationValidator.validation(notification)) {
+            LOGGER.log(Level.INFO, "Notification not created. URL or Email is incorrect!");
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+                    .body("Notification not created. URL or Email is incorrect!");
+        }
+
+        Iterable<Notification> notificationIterable = notificationRepository.findAllByTime(notification.getTime());
+
+        for (Notification ntf : notificationIterable) {
+            if (ntf.getMessage().equals(notification.getMessage()) &&
+                    ntf.getExtraParams().equals(notification.getExtraParams())) {
+                LOGGER.log(Level.INFO, "Notification not created. Such notification already exists. id = '{0}'.", ntf.getId());
+                return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                        .body("Notification not created. Such notification already exists. id = " + ntf.getId());
+            }
+        }
+
         notificationRepository.save(notification);
         LOGGER.log(Level.INFO, "Added new notification, id = {0}.", notification.getId());
-        return ResponseEntity.status(HttpStatus.OK).body(notification);
+        return ResponseEntity.status(HttpStatus.CREATED).body(notification);
     }
 
 
