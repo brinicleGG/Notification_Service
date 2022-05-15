@@ -27,7 +27,7 @@ public class DefaultAdvice {
 
     @ExceptionHandler(HttpMessageNotReadableException.class) // 422 поля не валидны
     public ResponseEntity notReadableException(HttpMessageNotReadableException e) {
-        return new ResponseEntity("Неправельный формат полей :" + e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+        return new ResponseEntity("Неправельный формат поля :" + e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler(ExtraParamsException.class) // 412 не коректный url или email
